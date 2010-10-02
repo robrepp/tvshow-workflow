@@ -10,7 +10,7 @@ my ($exact ) = $_[1];
 my ($episode) = $_[2];
 my @ret = "";
 if ( $show ne "" ){
-	my $site = get "http://www.tvrage.com/quickinfo.php?show=".$show."&ep=".$episode."&exact=".$exact;
+	my $site = get "http://services.tvrage.com/tools/quickinfo.php?show=".$show."&ep=".$episode."&exact=".$exact;
 	foreach my $line (split("\n",$site) ){
 		my ($sec,$val) = split('\@',$line,2);
 		if ($sec eq "Show Name" ){$ret[0] = $val;}
