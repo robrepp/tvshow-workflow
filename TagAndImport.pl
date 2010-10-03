@@ -105,9 +105,9 @@ foreach my $videofile (@videolist){
 		print "\n";
 		
 		# encode file with HandBrakeCLI
-		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
+		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 		my $HBrun = `./HandBrakeCLI -i $videofile -o "./Encoding/$newFileName" --preset="Universal" > /dev/null 2>&1`;
-		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
+		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 		
 		# use AtomicParsley to write the data to the file
 		my $APrun = `"$AP_bin" "./Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Completed/$newFileName"`;
