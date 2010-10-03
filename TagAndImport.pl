@@ -36,6 +36,19 @@ return 0;
 my $AP_bin="/usr/bin/AtomicParsley";
 my $include="\'.mp4|.m4a|.m4b|.m4p|.m4v|.3gp|.3g2\'";
 
+# create Completed, Originals and Imported directories if they don't exist
+unless (-d "Completed") {
+	mkdir "Completed";
+}
+
+unless (-d "Completed/Originals") {
+	mkdir "Completed/Originals";
+}
+
+unless (-d "Completed/Imported") {
+	mkdir "Completed/Imported";
+}
+
 # list video files and assign that list to the videolist array
 my @videolist = `ls -1 | grep -Ei $include`;
 
