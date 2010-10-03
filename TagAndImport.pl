@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+use POSIX qw/strftime/;
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -34,19 +35,23 @@ return 0;
 
 # set variables
 my $AP_bin="/usr/bin/AtomicParsley";
-my $include="\'.mp4|.m4a|.m4b|.m4p|.m4v|.3gp|.3g2\'";
+my $include="\'.avi\'";
 
-# create Completed, Originals and Imported directories if they don't exist
-unless (-d "Completed") {
-	mkdir "Completed";
+# create Completed, Originals, Imported and Encoding directories if they don't exist
+unless (-d "./Completed") {
+	mkdir "./Completed";
 }
 
-unless (-d "Completed/Originals") {
-	mkdir "Completed/Originals";
+unless (-d "./Completed/Originals") {
+	mkdir "./Completed/Originals";
 }
 
-unless (-d "Completed/Imported") {
-	mkdir "Completed/Imported";
+unless (-d "./Completed/Imported") {
+	mkdir "./Completed/Imported";
+}
+
+unless (-d "./Encoding") {
+	mkdir "./Encoding";
 }
 
 # list video files and assign that list to the videolist array
@@ -77,7 +82,6 @@ foreach my $videofile (@videolist){
 		print "\n";
 	} 
 	else {
-		
 		# retrieve season and episode numbers
 		my $newSeason = $seasonEpisode;
 		my $newEpisode = $seasonEpisode;
@@ -100,8 +104,13 @@ foreach my $videofile (@videolist){
 		print $newFileName;
 		print "\n";
 		
+		# encode file with HandBrakeCLI
+		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
+		my $HBrun = `./HandBrakeCLI -i $videofile -o "./Encoding/$newFileName" --preset="Universal" > /dev/null 2>&1`;
+		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
+		
 		# use AtomicParsley to write the data to the file
-		my $APrun = `"$AP_bin" "$videofile" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Completed/$newFileName"`;
+		my $APrun = `"$AP_bin" "./Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Completed/$newFileName"`;
 		
 		# establish final path to tagged file for Applescript
 		my $finalPath = `pwd`;
