@@ -33,9 +33,12 @@ if ( $show ne "" ){
 return 0;
 }
 
-# set variables
-my $AP_bin="/usr/bin/AtomicParsley";
+# config
+my $AP_bin="/Applications/AtomicParsley";
 my $HB_CLI_bin="/Applications/HandBrakeCLI";
+my $iTunes_auto_import_dir="/Volumes/1TB/iTunes/Automatically Add to iTunes";
+
+# file extensions to scan for
 my $include="\'.avi|.mkv\'";
 
 # create staging directories if they don't exist
@@ -43,16 +46,16 @@ unless (-d "./Staging") {
 	mkdir "./Staging";
 }
 
-unless (-d "./Staging/Completed") {
-	mkdir "./Staging/Completed";
+unless (-d "./Staging/Tagged") {
+	mkdir "./Staging/Tagged";
 }
 
-unless (-d "./Staging/Completed/Originals") {
-	mkdir "./Staging/Completed/Originals";
+unless (-d "./Staging/Originals") {
+	mkdir "./Staging/Originals";
 }
 
-unless (-d "./Staging/Completed/Imported") {
-	mkdir "./Staging/Completed/Imported";
+unless (-d "./Staging/Imported") {
+	mkdir "./Staging/Imported";
 }
 
 unless (-d "./Staging/Encoding") {
@@ -67,6 +70,9 @@ foreach my $videofile (@videolist){
 	
 	# eat the return character at the end of the file name
 	chomp $videofile;
+	
+	# move original file to Originals folder
+	`mv "$videofile" ./Staging/Originals/"$videofile"`;
 	
 	# retrieve show name and replace periods with spaces
 	my $newShowName = $videofile;
@@ -97,7 +103,7 @@ foreach my $videofile (@videolist){
 		my @show_info = &get_show($newShowName,"1",$newSeason."x".$newEpisode);
 		
 		# build new file name
-		my $newFileName = $newShowName." S".$newSeason." E".$newEpisode.".m4v";
+		my $newFileName = $newShowName." - S".$newSeason."E".$newEpisode.".m4v";
 		
 		# print show information
 		print "\n##########\n";
@@ -111,33 +117,33 @@ foreach my $videofile (@videolist){
 		
 		# encode file with HandBrakeCLI
 		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $HBrun = `$HB_CLI_bin -i $videofile -o "./Staging/Encoding/$newFileName" --preset="High Profile" > /dev/null 2>&1`;
+		my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="High Profile" > /dev/null 2>&1`;
 		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 		
 		# use AtomicParsley to write the data to the file
-		my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Completed/$newFileName"`;
+		my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
 		
 		# establish final path to tagged file for Applescript
 		my $finalPath = `pwd`;
 		chomp $finalPath;
-		$finalPath .= "/Staging/Completed/$newFileName";
+		$finalPath .= "/Staging/Tagged/$newFileName";
 		
 		# check if file exists before proceeding with import, move, and delete
 		if (-e $finalPath) {
-
+		
 		# import into iTunes
-		`osascript -e 'tell application "iTunes" to activate'`;
-		`osascript -e 'tell application "iTunes" to add (POSIX file "$finalPath")'`;
+		#`osascript -e 'tell application "iTunes" to activate'`;
+		#`osascript -e 'tell application "iTunes" to add (POSIX file "$finalPath")'`;
+		
+		# copy file to Auto-import iTunes directory
+		`cp ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 		
 		# move new file to Imported folder
-		`mv ./Staging/Completed/"$newFileName" ./Staging/Completed/Imported/"$newFileName"`;
-		
-		# move original file to Originals folder
-		`mv "$videofile" ./Staging/Completed/Originals/"$videofile"`;
+		`mv ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
 		
 		# delete file in Encoding directory
 		unlink("./Staging/Encoding/$newFileName");
-		}		
+		}
 		
 		else {
 			print "ERROR: File not found for import into iTunes.\n";
