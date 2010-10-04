@@ -129,7 +129,10 @@ foreach my $videofile (@videolist){
 		
 		# move original file to Originals folder
 		`mv "$videofile" ./Completed/Originals/"$videofile"`;
-		}
+		
+		# delete file in Encoding directory
+		unlink("./Encoding/$newFileName");
+		}		
 		
 		else {
 			print "ERROR: File not found for import into iTunes.\n";
