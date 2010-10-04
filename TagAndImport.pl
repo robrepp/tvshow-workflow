@@ -35,23 +35,28 @@ return 0;
 
 # set variables
 my $AP_bin="/usr/bin/AtomicParsley";
+my $HB_CLI_bin="/Applications/HandBrakeCLI";
 my $include="\'.avi|.mkv\'";
 
-# create Completed, Originals, Imported and Encoding directories if they don't exist
-unless (-d "./Completed") {
-	mkdir "./Completed";
+# create staging directories if they don't exist
+unless (-d "./Staging") {
+	mkdir "./Staging";
 }
 
-unless (-d "./Completed/Originals") {
-	mkdir "./Completed/Originals";
+unless (-d "./Staging/Completed") {
+	mkdir "./Staging/Completed";
 }
 
-unless (-d "./Completed/Imported") {
-	mkdir "./Completed/Imported";
+unless (-d "./Staging/Completed/Originals") {
+	mkdir "./Staging/Completed/Originals";
 }
 
-unless (-d "./Encoding") {
-	mkdir "./Encoding";
+unless (-d "./Staging/Completed/Imported") {
+	mkdir "./Staging/Completed/Imported";
+}
+
+unless (-d "./Staging/Encoding") {
+	mkdir "./Staging/Encoding";
 }
 
 # list video files and assign that list to the videolist array
@@ -106,16 +111,16 @@ foreach my $videofile (@videolist){
 		
 		# encode file with HandBrakeCLI
 		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $HBrun = `./HandBrakeCLI -i $videofile -o "./Encoding/$newFileName" --preset="High Profile" > /dev/null 2>&1`;
+		my $HBrun = `$HB_CLI_bin -i $videofile -o "./Staging/Encoding/$newFileName" --preset="High Profile" > /dev/null 2>&1`;
 		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 		
 		# use AtomicParsley to write the data to the file
-		my $APrun = `"$AP_bin" "./Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Completed/$newFileName"`;
+		my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Completed/$newFileName"`;
 		
 		# establish final path to tagged file for Applescript
 		my $finalPath = `pwd`;
 		chomp $finalPath;
-		$finalPath .= "/Completed/$newFileName";
+		$finalPath .= "/Staging/Completed/$newFileName";
 		
 		# check if file exists before proceeding with import, move, and delete
 		if (-e $finalPath) {
@@ -125,13 +130,13 @@ foreach my $videofile (@videolist){
 		`osascript -e 'tell application "iTunes" to add (POSIX file "$finalPath")'`;
 		
 		# move new file to Imported folder
-		`mv ./Completed/"$newFileName" ./Completed/Imported/"$newFileName"`;
+		`mv ./Staging/Completed/"$newFileName" ./Staging/Completed/Imported/"$newFileName"`;
 		
 		# move original file to Originals folder
-		`mv "$videofile" ./Completed/Originals/"$videofile"`;
+		`mv "$videofile" ./Staging/Completed/Originals/"$videofile"`;
 		
 		# delete file in Encoding directory
-		unlink("./Encoding/$newFileName");
+		unlink("./Staging/Encoding/$newFileName");
 		}		
 		
 		else {
