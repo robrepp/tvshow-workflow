@@ -106,7 +106,7 @@ foreach my $videofile (@videolist){
 		
 		# encode file with HandBrakeCLI
 		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $HBrun = `./HandBrakeCLI -i $videofile -o "./Encoding/$newFileName" --preset="AppleTV" > /dev/null 2>&1`;
+		my $HBrun = `./HandBrakeCLI -i $videofile -o "./Encoding/$newFileName" --preset="High Profile" > /dev/null 2>&1`;
 		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 		
 		# use AtomicParsley to write the data to the file
