@@ -1,0 +1,1 @@
+Perl script to automatically encode videos using HandBrake CLI, tag them with metadata using AtomicParsley then import them into iTunes.
