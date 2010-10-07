@@ -48,6 +48,7 @@ while (<CONFIG>) {
 my $AP_bin=$config{'AtomicParsleyLocation'};
 my $HB_CLI_bin=$config{'HandBrakeCLILocation'};
 my $iTunes_auto_import_dir=$config{'iTunesAutoImportLocation'};
+my $HBPresetName=$config{'HandBrakePresetName'};
 
 # file extensions to scan for
 my $include="\'.avi|.mkv\'";
@@ -130,7 +131,7 @@ foreach my $videofile (@videolist){
 		
 		# encode file with HandBrakeCLI
 		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="AppleTV" > /dev/null 2>&1`;
+		my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
 		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 		
 		# use AtomicParsley to write the data to the file

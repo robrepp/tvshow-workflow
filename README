@@ -1,1 +1,3 @@
 Perl script to automatically encode videos using HandBrake CLI (http://handbrake.fr/downloads2.php), tag them with metadata using AtomicParsley (http://atomicparsley.sourceforge.net/) then import them into iTunes.
+
+It expects that you have AtomicParsley and HandBrakeCLI in your /Applications folder. It uses the "Automatically Add to iTunes" folder that was introduced in iTunes 9, so you must have iTunes 9 or newer.
