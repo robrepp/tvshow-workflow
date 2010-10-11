@@ -144,11 +144,12 @@ foreach my $videofile (@videolist){
 		
 		# check if file exists before proceeding with import, move, and delete
 		if (-e $finalPath) {
-			# copy file to Auto-import iTunes directory
-			`cp ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 			
-			# move new file to Imported folder
-			`mv ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
+			# copy new file to Imported folder
+			`cp ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
+			
+			# move file to Auto-import iTunes directory
+			`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 			
 			# delete file in Encoding directory
 			unlink("./Staging/Encoding/$newFileName");
