@@ -51,7 +51,7 @@ my $iTunes_auto_import_dir=$config{'iTunesAutoImportLocation'};
 my $HBPresetName=$config{'HandBrakePresetName'};
 
 # file extensions to scan for
-my $include="\'.avi|.mkv\'";
+my $include="\'.avi|.mkv|.mp4|.m4v\'";
 
 # create staging directories if they don't exist
 unless (-d "./Staging") {
@@ -132,10 +132,12 @@ foreach my $videofile (@videolist){
 		# encode file with HandBrakeCLI
 		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 		my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
-		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
+		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
 		
 		# use AtomicParsley to write the data to the file
+		print "\nTagging file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 		my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
+		print "\nTagging complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 		
 		# establish final path to tagged file
 		my $finalPath = `pwd`;
@@ -150,6 +152,7 @@ foreach my $videofile (@videolist){
 			
 			# move file to Auto-import iTunes directory
 			`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
+			print "\n\nFile imported.\n##########\n";
 			
 			# delete file in Encoding directory
 			unlink("./Staging/Encoding/$newFileName");
