@@ -65,6 +65,14 @@ chomp $lockfile;
 # file extensions to scan for
 my $include="\'.avi|.mkv|.mp4|.m4v\'";
 
+# check if HandBrake application exists before starting
+die "Can't find HandBrakeCLI at $HB_CLI_bin"
+    unless -e $HB_CLI_bin;
+
+# check if AtomicParsley application exists before starting
+die "Can't find AtomicParsley at $AP_bin"
+    unless -e $AP_bin;
+
 # create staging directories if they don't exist
 unless (-d "./Staging") {
 	mkdir "./Staging";
@@ -193,7 +201,7 @@ else {
 					unlink("./Staging/Encoding/$newFileName");
 				
 					if ($ProwlAPIKey) {
-						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowName - Season $newSeason Episode $newEpisode\n\"$EpisodeName\"");
+						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowName - S$newSeason"."E$newEpisode\n\"$EpisodeName\"");
 					}
 				}
 		
