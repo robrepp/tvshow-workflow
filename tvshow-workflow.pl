@@ -3,6 +3,7 @@ use strict;
 use POSIX qw/strftime/;
 use LWP::Simple;
 use Fcntl ':flock';
+use HTML::Entities;
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -154,7 +155,7 @@ if (@videolist) {
 		
 			# use AtomicParsley to write the data to the file
 			print "\nTagging file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-			my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
+			my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "decode_entities($show_info[0])" --artist "decode_entities($show_info[0])" --TVEpisode "$newEpisode" --title "decode_entities($show_info[5])" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
 			print "\nTagging complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 		
 			# establish final path to tagged file
