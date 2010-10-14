@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 use POSIX qw/strftime/;
+use LWP::Simple;
+use Fcntl ':flock';
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -33,8 +35,11 @@ if ( $show ne "" ){
 return 0;
 }
 
+# get ip address of machine to use in lock file
+my $ipaddress = `ifconfig -a | perl -ne 'if ( m/^\\s*inet (?:addr:)?([\\d.]+).*?cast/ ) { print qq(\$1\n); exit 0; }'`;
+
 # load config file and set variables
-open(CONFIG,"tvshow-workflow.config") or die $_;
+open(CONFIG,"tvshow-workflow.config") or die "\nCan't find config file.\n";
 my %config = ();
 while (<CONFIG>) {
     chomp;
@@ -49,6 +54,8 @@ my $AP_bin=$config{'AtomicParsleyLocation'};
 my $HB_CLI_bin=$config{'HandBrakeCLILocation'};
 my $iTunes_auto_import_dir=$config{'iTunesAutoImportLocation'};
 my $HBPresetName=$config{'HandBrakePresetName'};
+my $ProwlAPIKey=$config{'ProwlAPIKey'};
+my $lockfile = "./Staging/$ipaddress";
 
 # file extensions to scan for
 my $include="\'.avi|.mkv|.mp4|.m4v\'";
@@ -77,92 +84,112 @@ unless (-d "./Staging/Encoding") {
 # list video files and assign that list to the videolist array
 my @videolist = `ls -1 | grep -Ei $include`;
 
-# moving all files to originals folder
-foreach my $videofile (@videolist){
-	# eat the return character at the end of the file name
-	chomp $videofile;
+# check if any compatible files are found before proceeding
+if (@videolist) {
 	
-	# move original file to Originals folder
-	`mv "$videofile" ./Staging/Originals/"$videofile"`;
-}
+	open(my $fh, '>>', $lockfile) or die "Could not open '$lockfile' - $!";
+	flock($fh, LOCK_EX) or die "Could not lock '$lockfile' - $!";
+	
+	# print list of files to be worked on and move them to the originals folder
+	print "\nOriginal files:\n";
+	foreach my $videofile (@videolist){
+		# eat the return character at the end of the file name
+		chomp $videofile;
+	
+		# print list of files to be worked on
+		print "$videofile";
+		print "\n";
+	
+		# move original file to Originals folder
+		`mv "$videofile" ./Staging/Originals/"$videofile"`;
+	}
 
-# main loop
-foreach my $videofile (@videolist){
-	# retrieve show name and replace periods with spaces
-	my $newShowName = $videofile;
-	$newShowName =~ s/(^.*)(\.s\d+e\d+.*)/$1/i;
-	$newShowName =~ s/\./ /g;
+	# main loop
+	foreach my $videofile (@videolist){
+		# retrieve show name and replace periods with spaces
+		my $newShowName = $videofile;
+		$newShowName =~ s/(^.*)(\.s\d+e\d+.*)/$1/i;
+		$newShowName =~ s/\./ /g;
 	
-	# retrieve season and episode string
-	my $seasonEpisode = $videofile;
-	$seasonEpisode =~ s/(^.*\.)(s\d+e\d+)(.*)/$2/i;
+		# retrieve season and episode string
+		my $seasonEpisode = $videofile;
+		$seasonEpisode =~ s/(^.*\.)(s\d+e\d+)(.*)/$2/i;
 	
-	# check to make sure both newShowName and seasonEpisode strings exist
-	# if either string is missing report an error, otherwise proceed
-	if (($newShowName eq $videofile) || ($seasonEpisode eq $videofile)) {
-		print "\n##########\n";
-		print "ERROR: Show name and/or season and episode numbers were not found in the video file name.\n";
-		print "ERROR: Video file name: ";
-		print $videofile;
-		print "\n";
-	} 
-	else {
-		# retrieve season and episode numbers
-		my $newSeason = $seasonEpisode;
-		my $newEpisode = $seasonEpisode;
-		$newSeason =~ s/s(\d+)e(\d+)/$1/i;
-		$newEpisode=~ s/s(\d+)e(\d+)/$2/i;
-		
-		# establish show_info array with information pulled from tvrage
-		my @show_info = &get_show($newShowName,"1",$newSeason."x".$newEpisode);
-		
-		# build new file name
-		my $newFileName = $newShowName." - S".$newSeason."E".$newEpisode.".m4v";
-		
-		# print show information
-		print "\n##########\n";
-		print "Show name: ";
-		print $newShowName;
-		print "\nEpisode title: ";
-		print $show_info[5];
-		print "\nNew File Name: ";
-		print $newFileName;
-		print "\n";
-		
-		# encode file with HandBrakeCLI
-		print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
-		print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
-		
-		# use AtomicParsley to write the data to the file
-		print "\nTagging file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
-		print "\nTagging complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-		
-		# establish final path to tagged file
-		my $finalPath = `pwd`;
-		chomp $finalPath;
-		$finalPath .= "/Staging/Tagged/$newFileName";
-		
-		# check if file exists before proceeding with import, move, and delete
-		if (-e $finalPath) {
-			
-			# copy new file to Imported folder
-			`cp ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
-			
-			# move file to Auto-import iTunes directory
-			`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
-			print "\n\nFile imported.\n##########\n";
-			
-			# delete file in Encoding directory
-			unlink("./Staging/Encoding/$newFileName");
-		}
-		
-		else {
-			print "ERROR: File not found for import into iTunes.\n";
-			print "ERROR: Path to video file: ";
-			print $finalPath;
+		# check to make sure both newShowName and seasonEpisode strings exist
+		# if either string is missing report an error, otherwise proceed
+		if (($newShowName eq $videofile) || ($seasonEpisode eq $videofile)) {
+			print "\n##########\n";
+			print "ERROR: Show name and/or season and episode numbers were not found in the video file name.\n";
+			print "ERROR: Video file name: ";
+			print $videofile;
 			print "\n";
+		} 
+		else {
+			# retrieve season and episode numbers
+			my $newSeason = $seasonEpisode;
+			my $newEpisode = $seasonEpisode;
+			$newSeason =~ s/s(\d+)e(\d+)/$1/i;
+			$newEpisode=~ s/s(\d+)e(\d+)/$2/i;
+		
+			# establish show_info array with information pulled from tvrage
+			my @show_info = &get_show($newShowName,"1",$newSeason."x".$newEpisode);
+		
+			# build new file name
+			my $newFileName = $newShowName." - S".$newSeason."E".$newEpisode.".m4v";
+		
+			# print show information
+			print "\n##########\n";
+			print "Show name: ";
+			print $newShowName;
+			print "\nEpisode title: ";
+			print $show_info[5];
+			print "\nNew File Name: ";
+			print $newFileName;
+			print "\n";
+		
+			# encode file with HandBrakeCLI
+			print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
+			my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
+			print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
+		
+			# use AtomicParsley to write the data to the file
+			print "\nTagging file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
+			my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$show_info[0]" --artist "$show_info[0]" --TVEpisode "$newEpisode" --title "$show_info[5]" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$show_info[11]" --genre "$show_info[10]" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
+			print "\nTagging complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")";
+		
+			# establish final path to tagged file
+			my $finalPath = `pwd`;
+			chomp $finalPath;
+			$finalPath .= "/Staging/Tagged/$newFileName";
+		
+			# check if file exists before proceeding with import, move, and delete
+			if (-e $finalPath) {
+			
+				# copy new file to Imported folder then move into iTunes import folder
+				print "\nImporting file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
+				`cp ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
+				`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
+				print "\n\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
+			
+				# delete file in Encoding directory
+				unlink("./Staging/Encoding/$newFileName");
+				
+				if ($ProwlAPIKey) {
+					my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$show_info[0] - Episode $newEpisode");
+				}
+			}
+		
+			else {
+				print "ERROR: File not found for import into iTunes.\n";
+				print "ERROR: Path to video file: ";
+				print $finalPath;
+				print "\n";
+			}
 		}
 	}
+	close($fh) or die "Could not write '$lockfile' - $!";
+	unlink($lockfile);
+}
+else {
+	print "No compatible video files found.\n";
 }
