@@ -141,9 +141,9 @@ if (@videolist) {
 			# print show information
 			print "\n##########\n";
 			print "Show name: ";
-			print $newShowName;
+			print decode_entities($newShowName);
 			print "\nEpisode title: ";
-			print $show_info[5];
+			print decode_entities($show_info[5]);
 			print "\nNew File Name: ";
 			print $newFileName;
 			print "\n";
