@@ -116,7 +116,10 @@ else {
 			# move original file to Originals folder
 			`mv "$videofile" ./Staging/Originals/"$videofile"`;
 		}
-
+		
+		# print the HandBrake preset to be used
+		print "\nHandBrake Preset: $HBPresetName\n";
+		
 		# main loop
 		foreach my $videofile (@videolist){
 			# retrieve show name and replace periods with spaces
@@ -166,13 +169,12 @@ else {
 				print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
 		
 				# use AtomicParsley to write the data to the file
-				print "\nTagging file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
+				print "\nTagging and importing file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 				my $TVShowName = decode_entities($show_info[0]);
 				my $EpisodeName = decode_entities($show_info[5]);
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
 				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
-				print "\nTagging complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
 		
 				# establish final path to tagged file
 				my $finalPath = `pwd`;
@@ -183,7 +185,6 @@ else {
 				if (-e $finalPath) {
 			
 					# copy new file to Imported folder then move into iTunes import folder
-					print "\nImporting file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
 					`cp ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
 					`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 					print "\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
@@ -192,7 +193,7 @@ else {
 					unlink("./Staging/Encoding/$newFileName");
 				
 					if ($ProwlAPIKey) {
-						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowName - Episode $newEpisode");
+						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowName - Season $newSeason Episode $newEpisode\n\"$EpisodeName\"");
 					}
 				}
 		
