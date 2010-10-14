@@ -59,7 +59,7 @@ my $ProwlAPIKey=$config{'ProwlAPIKey'};
 my $ipaddress = `ifconfig -a | perl -ne 'if ( m/^\\s*inet (?:addr:)?([\\d.]+).*?cast/ ) { print qq(\$1\n); exit 0; }'`;
 
 # set lockfile varible
-my $lockfile = "./Staging/$ipaddress";
+my $lockfile = "./Staging/Locks/$ipaddress";
 chomp $lockfile;
 
 # file extensions to scan for
@@ -72,6 +72,10 @@ unless (-d "./Staging") {
 
 unless (-d "./Staging/Tagged") {
 	mkdir "./Staging/Tagged";
+}
+
+unless (-d "./Staging/Locks") {
+	mkdir "./Staging/Locks";
 }
 
 unless (-d "./Staging/Originals") {
