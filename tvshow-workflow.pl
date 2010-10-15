@@ -65,6 +65,9 @@ chomp $lockfile;
 # file extensions to scan for
 my $include="\'.avi|.mkv|.mp4|.m4v\'";
 
+# clear
+system("clear");
+
 # check if HandBrake application exists before starting
 die "Can't find HandBrakeCLI at $HB_CLI_bin"
     unless -e $HB_CLI_bin;
