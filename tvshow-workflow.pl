@@ -157,16 +157,22 @@ else {
 		
 				# establish show_info array with information pulled from tvrage
 				my @show_info = &get_show($newShowName,"1",$newSeason."x".$newEpisode);
+				
+				# set episode variables
+				my $TVShowName = decode_entities($show_info[0]);
+				my $EpisodeName = decode_entities($show_info[5]);
+				my $TVNetwork = $show_info[11];
+				my $ShowGenre = $show_info[10];
 		
 				# build new file name
-				my $newFileName = $newShowName." - S".$newSeason."E".$newEpisode.".m4v";
+				my $newFileName = $TVShowName." - S".$newSeason."E".$newEpisode.".m4v";
 		
 				# print show information
 				print "\n##########\n";
 				print "Show name: ";
-				print decode_entities($newShowName);
+				print $TVShowName;
 				print "\nEpisode title: ";
-				print decode_entities($show_info[5]);
+				print $EpisodeName;
 				print "\nNew File Name: ";
 				print $newFileName;
 				print "\n";
