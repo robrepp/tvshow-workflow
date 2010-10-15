@@ -184,10 +184,6 @@ else {
 		
 				# use AtomicParsley to write the data to the file
 				print "\nTagging and importing file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-				my $TVShowName = decode_entities($show_info[0]);
-				my $EpisodeName = decode_entities($show_info[5]);
-				my $TVNetwork = $show_info[11];
-				my $ShowGenre = $show_info[10];
 				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
 		
 				# establish final path to tagged file
