@@ -4,6 +4,7 @@ use POSIX qw/strftime/;
 use LWP::Simple;
 use Fcntl ':flock';
 use HTML::Entities;
+use Time::Local;
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -169,7 +170,21 @@ else {
 				my $EpisodeName = decode_entities($show_info[5]);
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
-		
+				my $AirDate = $show_info[4];
+				
+				# construct release date
+				my $mon2num = {};
+				my %mon2num = qw(
+				  jan 01  feb 02  mar 03  apr 04  may 05  jun 06
+				  jul 07  aug 08  sep 09  oct 10 nov 11 dec 12
+				);
+				my $_ = "";
+				my @date = split(/\//, $show_info[4]);
+				my $releaseDay = $date[0];
+				my $releaseMonth = $mon2num{lc $date[1]};
+				my $releaseYear = $date[2];
+				my $releaseDate = $releaseYear . "-" . $releaseMonth . "-" . $releaseDay . "T09:00:00Z";
+				
 				# build new file name
 				my $newFileName = $TVShowName." - S".$newSeason."E".$newEpisode.".m4v";
 		
@@ -182,6 +197,9 @@ else {
 				print "\nNew File Name: ";
 				print $newFileName;
 				print "\n";
+				print "Air date: ";
+				print $AirDate;
+				print "\n";
 		
 				# encode file with HandBrakeCLI
 				print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
@@ -190,7 +208,7 @@ else {
 		
 				# use AtomicParsley to write the data to the file
 				print "\nTagging and importing file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
+				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --year "$releaseDate" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
 		
 				# establish final path to tagged file
 				my $finalPath = `pwd`;
