@@ -150,6 +150,9 @@ else {
 				print "ERROR: Video file name: ";
 				print $videofile;
 				print "\n";
+				
+				# move file out of staging folder
+				`mv ./Staging/Originals/"$videofile" ./"$videofile"`;
 			} 
 			else {
 				# retrieve season and episode numbers
