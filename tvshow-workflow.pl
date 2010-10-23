@@ -167,23 +167,29 @@ else {
 				
 				# set episode variables
 				my $TVShowName = decode_entities($show_info[0]);
-				my $EpisodeName = decode_entities($show_info[5]);
+				my $EpisodeName = "";
+				if ($show_info[5]) {
+					my $EpisodeName = decode_entities($show_info[5]);
+				}
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
 				my $AirDate = $show_info[4];
+				my $releaseDate = "";
 				
 				# construct release date
-				my $mon2num = {};
-				my %mon2num = qw(
-				  jan 01  feb 02  mar 03  apr 04  may 05  jun 06
-				  jul 07  aug 08  sep 09  oct 10 nov 11 dec 12
-				);
-				my $_ = "";
-				my @date = split(/\//, $show_info[4]);
-				my $releaseDay = $date[0];
-				my $releaseMonth = $mon2num{lc $date[1]};
-				my $releaseYear = $date[2];
-				my $releaseDate = $releaseYear . "-" . $releaseMonth . "-" . $releaseDay . "T09:00:00Z";
+				if ($AirDate) {
+					my $mon2num = {};
+					my %mon2num = qw(
+					  jan 01  feb 02  mar 03  apr 04  may 05  jun 06
+					  jul 07  aug 08  sep 09  oct 10 nov 11 dec 12
+					);
+					my $_ = "";
+					my @date = split(/\//, $show_info[4]);
+					my $releaseDay = $date[0];
+					my $releaseMonth = $mon2num{lc $date[1]};
+					my $releaseYear = $date[2];
+					$releaseDate = $releaseYear . "-" . $releaseMonth . "-" . $releaseDay . "T09:00:00Z";
+				}
 				
 				# build new file name
 				my $newFileName = $TVShowName." - S".$newSeason."E".$newEpisode.".m4v";
@@ -197,9 +203,11 @@ else {
 				print "\nNew File Name: ";
 				print $newFileName;
 				print "\n";
-				print "Air date: ";
-				print $AirDate;
-				print "\n";
+				if (defined $AirDate) {
+					print "Air date: ";
+					print $AirDate;
+					print "\n";
+				}
 		
 				# encode file with HandBrakeCLI
 				print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
