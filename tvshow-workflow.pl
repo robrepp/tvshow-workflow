@@ -168,8 +168,8 @@ else {
 				# set episode variables
 				my $TVShowName = decode_entities($show_info[0]);
 				my $EpisodeName = "";
-				if ($show_info[5]) {
-					my $EpisodeName = decode_entities($show_info[5]);
+				if (defined($show_info[5])) {
+					$EpisodeName = decode_entities($show_info[5]);
 				}
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
