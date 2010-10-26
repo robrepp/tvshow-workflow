@@ -5,6 +5,7 @@ use LWP::Simple;
 use Fcntl ':flock';
 use HTML::Entities;
 use Time::Local;
+use Cwd;
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -219,8 +220,7 @@ else {
 				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --year "$releaseDate" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
 		
 				# establish final path to tagged file
-				my $finalPath = `pwd`;
-				chomp $finalPath;
+				my $finalPath = cwd;
 				$finalPath .= "/Staging/Tagged/$newFileName";
 		
 				# check if file exists before proceeding with import, move, and delete
