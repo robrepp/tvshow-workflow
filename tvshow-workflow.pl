@@ -5,7 +5,8 @@ use LWP::Simple;
 use Fcntl ':flock';
 use HTML::Entities;
 use Time::Local;
-use Cwd;
+use File::Spec::Functions qw(rel2abs);
+use File::Basename;
 
 # get_show function authored by tvrage.com
 # available at http://tvrage.com/info/quickinfo.html
@@ -39,7 +40,8 @@ return 0;
 }
 
 # load config file
-open(CONFIG,"tvshow-workflow.config") or die "\nCan't find config file.\n";
+my $cwd = dirname(rel2abs($0));
+open(CONFIG,"$cwd/tvshow-workflow.config") or die "\nCan't find config file.\n";
 my %config = ();
 while (<CONFIG>) {
     chomp;
@@ -54,6 +56,7 @@ while (<CONFIG>) {
 my $AP_bin=$config{'AtomicParsleyLocation'};
 my $HB_CLI_bin=$config{'HandBrakeCLILocation'};
 my $iTunes_auto_import_dir=$config{'iTunesAutoImportLocation'};
+my $workingDirectory=$config{'WorkingDirectory'};
 my $HBPresetName=$config{'HandBrakePresetName'};
 my $ProwlAPIKey=$config{'ProwlAPIKey'};
 
@@ -61,7 +64,7 @@ my $ProwlAPIKey=$config{'ProwlAPIKey'};
 my $ipaddress = `ifconfig -a | perl -ne 'if ( m/^\\s*inet (?:addr:)?([\\d.]+).*?cast/ ) { print qq(\$1\n); exit 0; }'`;
 
 # set lockfile varible
-my $lockfile = "./Staging/Locks/$ipaddress";
+my $lockfile = "$workingDirectory/Staging/Locks/$ipaddress";
 chomp $lockfile;
 
 # file extensions to scan for
@@ -79,32 +82,32 @@ die "Can't find AtomicParsley at $AP_bin"
     unless -e $AP_bin;
 
 # create staging directories if they don't exist
-unless (-d "./Staging") {
-	mkdir "./Staging";
+unless (-d "$workingDirectory/Staging") {
+	mkdir "$workingDirectory/Staging";
 }
 
-unless (-d "./Staging/Tagged") {
-	mkdir "./Staging/Tagged";
+unless (-d "$workingDirectory/Staging/Tagged") {
+	mkdir "$workingDirectory/Staging/Tagged";
 }
 
-unless (-d "./Staging/Locks") {
-	mkdir "./Staging/Locks";
+unless (-d "$workingDirectory/Staging/Locks") {
+	mkdir "$workingDirectory/Staging/Locks";
 }
 
-unless (-d "./Staging/Originals") {
-	mkdir "./Staging/Originals";
+unless (-d "$workingDirectory/Staging/Originals") {
+	mkdir "$workingDirectory/Staging/Originals";
 }
 
-unless (-d "./Staging/Imported") {
-	mkdir "./Staging/Imported";
+unless (-d "$workingDirectory/Staging/Imported") {
+	mkdir "$workingDirectory/Staging/Imported";
 }
 
-unless (-d "./Staging/Encoding") {
-	mkdir "./Staging/Encoding";
+unless (-d "$workingDirectory/Staging/Encoding") {
+	mkdir "$workingDirectory/Staging/Encoding";
 }
 
 # list video files and assign that list to the videolist array
-my @videolist = `ls -1 | grep -Ei $include`;
+my @videolist = `ls $workingDirectory | grep -Ei $include`;
 
 if (-e $lockfile) {
 	print "Script currently running on this computer.\n";
@@ -127,7 +130,7 @@ else {
 			print "\n";
 	
 			# move original file to Originals folder
-			`mv "$videofile" ./Staging/Originals/"$videofile"`;
+			`mv "$workingDirectory/$videofile" $workingDirectory/Staging/Originals/"$videofile"`;
 		}
 		
 		# print the HandBrake preset to be used
@@ -154,7 +157,7 @@ else {
 				print "\n";
 				
 				# move file out of staging folder
-				`mv ./Staging/Originals/"$videofile" ./"$videofile"`;
+				`mv $workingDirectory/Staging/Originals/"$videofile" $workingDirectory/"$videofile"`;
 			} 
 			else {
 				# retrieve season and episode numbers
@@ -212,27 +215,26 @@ else {
 		
 				# encode file with HandBrakeCLI
 				print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-				my $HBrun = `$HB_CLI_bin -i "./Staging/Originals/$videofile" -o "./Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
+				my $HBrun = `$HB_CLI_bin -i "$workingDirectory/Staging/Originals/$videofile" -o "$workingDirectory/Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
 				print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
 		
 				# use AtomicParsley to write the data to the file
 				print "\nTagging and importing file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-				my $APrun = `"$AP_bin" "./Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --year "$releaseDate" --stik "TV Show" -o "./Staging/Tagged/$newFileName"`;
+				my $APrun = `"$AP_bin" "$workingDirectory/Staging/Encoding/$newFileName" --TVShowName "$TVShowName" --artist "$TVShowName" --TVEpisode "$newEpisode" --title "$EpisodeName" --TVEpisodeNum "$newEpisode" --tracknum "$newEpisode" --TVSeasonNum "$newSeason" --album "Season $newSeason" --TVNetwork "$TVNetwork" --genre "$ShowGenre" --year "$releaseDate" --stik "TV Show" -o "$workingDirectory/Staging/Tagged/$newFileName"`;
 		
 				# establish final path to tagged file
-				my $finalPath = cwd;
-				$finalPath .= "/Staging/Tagged/$newFileName";
+				my $finalPath .= "$workingDirectory/Staging/Tagged/$newFileName";
 		
 				# check if file exists before proceeding with import, move, and delete
 				if (-e $finalPath) {
 			
 					# copy new file to Imported folder then move into iTunes import folder
-					`cp ./Staging/Tagged/"$newFileName" ./Staging/Imported/"$newFileName"`;
-					`mv ./Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
+					`cp $workingDirectory/Staging/Tagged/"$newFileName" $workingDirectory/Staging/Imported/"$newFileName"`;
+					`mv $workingDirectory/Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 					print "\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
 			
 					# delete file in Encoding directory
-					unlink("./Staging/Encoding/$newFileName");
+					unlink("$workingDirectory/Staging/Encoding/$newFileName");
 				
 					if ($ProwlAPIKey) {
 						my $TVShowNameEncoded = encode_entities($TVShowName);
