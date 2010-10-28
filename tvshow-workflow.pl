@@ -52,6 +52,16 @@ while (<CONFIG>) {
     $config{$key} = $variable;
 }
 
+# turn logging on
+my $logging=1;
+my $logfile= $ENV{"HOME"} . "/Library/Logs/tvshow-workflow.log";
+if($logging){open FILE , ">>$logfile";}
+sub logit{
+  if ($logging){
+        print FILE localtime() . " - " . "$_[0]\n";
+  }
+}
+
 # set variables from config file
 my $AP_bin=$config{'AtomicParsleyLocation'};
 my $HB_CLI_bin=$config{'HandBrakeCLILocation'};
@@ -70,7 +80,7 @@ chomp $lockfile;
 # file extensions to scan for
 my $include="\'.avi|.mkv|.mp4|.m4v\'";
 
-# clear
+# clear and open logfile
 system("clear");
 
 # check if HandBrake application exists before starting
@@ -121,13 +131,14 @@ else {
 	
 		# print list of files to be worked on and move them to the originals folder
 		print "\nOriginal files:\n";
+		logit("Original files:\n");
 		foreach my $videofile (@videolist){
 			# eat the return character at the end of the file name
 			chomp $videofile;
 	
 			# print list of files to be worked on
-			print "$videofile";
-			print "\n";
+			print "$videofile\n";
+			logit("$videofile\n");
 	
 			# move original file to Originals folder
 			`mv "$workingDirectory/$videofile" $workingDirectory/Staging/Originals/"$videofile"`;
@@ -135,6 +146,7 @@ else {
 		
 		# print the HandBrake preset to be used
 		print "\nHandBrake Preset: $HBPresetName\n";
+		logit("\nHandBrake Preset: $HBPresetName\n");
 		
 		# main loop
 		foreach my $videofile (@videolist){
@@ -232,6 +244,7 @@ else {
 					`cp $workingDirectory/Staging/Tagged/"$newFileName" $workingDirectory/Staging/Imported/"$newFileName"`;
 					`mv $workingDirectory/Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 					print "\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
+					logit("\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n");
 			
 					# delete file in Encoding directory
 					unlink("$workingDirectory/Staging/Encoding/$newFileName");
@@ -253,8 +266,10 @@ else {
 		}
 		close($fh) or die "Could not write '$lockfile' - $!";
 		unlink($lockfile);
+		if($logging){close FILE};
 	}
 	else {
 		print "No compatible video files found.\n";
+		if($logging){close FILE};
 	}
 }
