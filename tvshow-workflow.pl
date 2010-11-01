@@ -131,14 +131,14 @@ else {
 	
 		# print list of files to be worked on and move them to the originals folder
 		print "\nOriginal files:\n";
-		logit("Original files:\n");
+		logit("Original files:");
 		foreach my $videofile (@videolist){
 			# eat the return character at the end of the file name
 			chomp $videofile;
 	
 			# print list of files to be worked on
 			print "$videofile\n";
-			logit("$videofile\n");
+			logit("$videofile");
 	
 			# move original file to Originals folder
 			`mv "$workingDirectory/$videofile" $workingDirectory/Staging/Originals/"$videofile"`;
@@ -146,7 +146,7 @@ else {
 		
 		# print the HandBrake preset to be used
 		print "\nHandBrake Preset: $HBPresetName\n";
-		logit("\nHandBrake Preset: $HBPresetName\n");
+		logit("\nHandBrake Preset: $HBPresetName");
 		
 		# main loop
 		foreach my $videofile (@videolist){
@@ -244,7 +244,7 @@ else {
 					`cp $workingDirectory/Staging/Tagged/"$newFileName" $workingDirectory/Staging/Imported/"$newFileName"`;
 					`mv $workingDirectory/Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 					print "\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
-					logit("\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n");
+					logit("File imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")");
 			
 					# delete file in Encoding directory
 					unlink("$workingDirectory/Staging/Encoding/$newFileName");
