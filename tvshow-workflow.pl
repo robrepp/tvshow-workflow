@@ -250,6 +250,8 @@ else {
 					unlink("$workingDirectory/Staging/Encoding/$newFileName");
 				
 					if ($ProwlAPIKey) {
+						$TVShowName =~ s/&/%26/;
+						$EpisodeName =~ s/&/%26/;
 						my $TVShowNameEncoded = encode_entities($TVShowName);
 						my $EpisodeNameEncoded = encode_entities($EpisodeName);
 						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowNameEncoded - S$newSeason"."E$newEpisode\n\"$EpisodeNameEncoded\"");
