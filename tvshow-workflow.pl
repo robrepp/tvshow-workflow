@@ -128,9 +128,10 @@ else {
 	
 		open(my $fh, '>>', $lockfile) or die "Could not open '$lockfile' - $!";
 		flock($fh, LOCK_EX) or die "Could not lock '$lockfile' - $!";
-	
+		
 		# print list of files to be worked on and move them to the originals folder
 		print "\nOriginal files:\n";
+		logit("Found files to work on. Starting...");
 		logit("Original files:");
 		foreach my $videofile (@videolist){
 			# eat the return character at the end of the file name
@@ -146,7 +147,7 @@ else {
 		
 		# print the HandBrake preset to be used
 		print "\nHandBrake Preset: $HBPresetName\n";
-		logit("\nHandBrake Preset: $HBPresetName");
+		logit("HandBrake Preset: $HBPresetName");
 		
 		# main loop
 		foreach my $videofile (@videolist){
