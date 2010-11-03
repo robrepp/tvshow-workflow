@@ -260,7 +260,10 @@ else {
 					if ($ProwlAPIKey) {
 						my $TVShowNameEncoded = URLEncode($TVShowName);
 						my $EpisodeNameEncoded = URLEncode($EpisodeName);
-						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowNameEncoded - S$newSeason"."E$newEpisode\n\"$EpisodeNameEncoded\"");
+						if($EpisodeNameEncoded) {
+							$EpisodeNameEncoded = "\"$EpisodeNameEncoded\""
+						}
+						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowNameEncoded - S$newSeason"."E$newEpisode\n$EpisodeNameEncoded");
 					}
 				}
 		
