@@ -252,7 +252,7 @@ else {
 					`cp $workingDirectory/Staging/Tagged/"$newFileName" $workingDirectory/Staging/Imported/"$newFileName"`;
 					`mv $workingDirectory/Staging/Tagged/"$newFileName" "$iTunes_auto_import_dir"`;
 					print "\nFile imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n##########\n";
-					logit("File imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")");
+					logit("$newFileName encoded and imported. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")");
 			
 					# delete file in Encoding directory
 					unlink("$workingDirectory/Staging/Encoding/$newFileName");
