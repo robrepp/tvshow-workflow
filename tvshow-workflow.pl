@@ -158,14 +158,21 @@ else {
 		
 		# main loop
 		foreach my $videofile (@videolist){
-			# retrieve show name and replace periods with spaces
+			# retrieve show name from file
 			my $newShowName = $videofile;
 			$newShowName =~ s/(^.*)(\.s\d+e\d+.*)/$1/i;
-			$newShowName =~ s/\./ /g;
+
+			if ($newShowName eq $videofile) {
+				$newShowName =~ s/(^.*\.)(([0-9]{4})\.([0-9]{2})\.([0-9]{2})\.*)(.*)/$1/i;
+			}
 	
 			# retrieve season and episode string
 			my $seasonEpisode = $videofile;
 			$seasonEpisode =~ s/(^.*\.)(s\d+e\d+)(.*)/$2/i;
+			
+			if ($seasonEpisode eq $videofile) {
+				$seasonEpisode =~ s/(^.*\.)(([0-9]{4})\.([0-9]{2})\.([0-9]{2})*)(.*)/$2/i;
+			}
 	
 			# check to make sure both newShowName and seasonEpisode strings exist
 			# if either string is missing report an error, otherwise proceed
@@ -180,6 +187,9 @@ else {
 				`mv $workingDirectory/Staging/Originals/"$videofile" $workingDirectory/"$videofile"`;
 			} 
 			else {
+				# replace periods in showname with spaces
+				$newShowName =~ s/\./ /g;
+
 				# retrieve season and episode numbers
 				my $newSeason = $seasonEpisode;
 				my $newEpisode = $seasonEpisode;
@@ -216,7 +226,12 @@ else {
 				}
 				
 				# build new file name
-				my $newFileName = $TVShowName." - S".$newSeason."E".$newEpisode.".m4v";
+				my $newFileName = "";
+				if (($newSeason eq $seasonEpisode) || ($newEpisode eq $seasonEpisode)) {
+					$newFileName = $TVShowName." - ".$newSeason.".m4v";
+				} else {
+					$newFileName = $TVShowName." - S".$newSeason."E".$newEpisode.".m4v";
+				}
 		
 				# print show information
 				print "\n##########\n";
