@@ -161,7 +161,8 @@ else {
 			# retrieve show name from file
 			my $newShowName = $videofile;
 			$newShowName =~ s/(^.*)(\.s\d+e\d+.*)/$1/i;
-
+			
+			# try getting show name from show that uses yyyy.mm.dd format
 			if ($newShowName eq $videofile) {
 				$newShowName =~ s/(^.*\.)(([0-9]{4})\.([0-9]{2})\.([0-9]{2})\.*)(.*)/$1/i;
 			}
@@ -170,6 +171,7 @@ else {
 			my $seasonEpisode = $videofile;
 			$seasonEpisode =~ s/(^.*\.)(s\d+e\d+)(.*)/$2/i;
 			
+			# try getting episode name from show that uses yyyy.mm.dd format
 			if ($seasonEpisode eq $videofile) {
 				$seasonEpisode =~ s/(^.*\.)(([0-9]{4})\.([0-9]{2})\.([0-9]{2})*)(.*)/$2/i;
 			}
@@ -195,6 +197,12 @@ else {
 				my $newEpisode = $seasonEpisode;
 				$newSeason =~ s/s(\d+)e(\d+)/$1/i;
 				$newEpisode=~ s/s(\d+)e(\d+)/$2/i;
+				if ($newSeason eq $seasonEpisode) {
+					$newSeason =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$1/i;
+				}
+				if ($newEpisode eq $seasonEpisode) {
+					$newEpisode =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$2$3/i;
+				}
 		
 				# establish show_info array with information pulled from tvrage
 				my @show_info = &get_show($newShowName,"1",$newSeason."x".$newEpisode);
@@ -278,7 +286,7 @@ else {
 						if($EpisodeNameEncoded) {
 							$EpisodeNameEncoded = "\"$EpisodeNameEncoded\""
 						}
-						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowNameEncoded - S$newSeason"."E$newEpisode\n$EpisodeNameEncoded");
+						my $callProwl = get("https://prowl.weks.net/publicapi/add?apikey=$ProwlAPIKey&application=TV%20Shows&event=Import&description=$TVShowNameEncoded - $newSeason");
 					}
 				}
 		
