@@ -212,6 +212,8 @@ else {
 				my $EpisodeName = "";
 				if (defined($show_info[5])) {
 					$EpisodeName = decode_entities($show_info[5]);
+				} else {
+					$EpisodeName = $seasonEpisode;
 				}
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
