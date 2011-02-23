@@ -219,6 +219,10 @@ else {
 				my $ShowGenre = $show_info[10];
 				my $AirDate = $show_info[4];
 				my $releaseDate = "";
+				if ($seasonEpisode =~ m/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/) {
+					my $releaseDate = $seasonEpisode;
+					$releaseDate =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$3\/$2\/$1/i;
+				}
 				
 				# construct release date
 				if ($AirDate) {
