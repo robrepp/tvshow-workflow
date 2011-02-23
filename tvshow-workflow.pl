@@ -195,6 +195,8 @@ else {
 				# retrieve season and episode numbers
 				my $newSeason = $seasonEpisode;
 				my $newEpisode = $seasonEpisode;
+				my $releaseDate = $seasonEpisode;
+				
 				$newSeason =~ s/s(\d+)e(\d+)/$1/i;
 				$newEpisode=~ s/s(\d+)e(\d+)/$2/i;
 				if ($newSeason eq $seasonEpisode) {
@@ -202,6 +204,7 @@ else {
 				}
 				if ($newEpisode eq $seasonEpisode) {
 					$newEpisode =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$2$3/i;
+					$releaseDate =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$1\-$2\-$3T09:00:00Z/i;
 				}
 		
 				# establish show_info array with information pulled from tvrage
@@ -218,12 +221,8 @@ else {
 				my $TVNetwork = $show_info[11];
 				my $ShowGenre = $show_info[10];
 				my $AirDate = $show_info[4];
-				my $releaseDate = "";
-				if ($seasonEpisode =~ m/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/) {
-					my $releaseDate = $seasonEpisode;
-					$releaseDate =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$3\/$2\/$1/i;
-				}
-				
+
+				print $releaseDate;
 				# construct release date
 				if ($AirDate) {
 					my $mon2num = {};
