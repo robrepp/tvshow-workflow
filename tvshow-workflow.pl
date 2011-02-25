@@ -199,11 +199,14 @@ else {
 				
 				$newSeason =~ s/s(\d+)e(\d+)/$1/i;
 				$newEpisode=~ s/s(\d+)e(\d+)/$2/i;
+				
+				# if we don't find a standard season x episode format, look for yyyy.mm.dd format
 				if ($newSeason eq $seasonEpisode) {
 					$newSeason =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$1/i;
 				}
 				if ($newEpisode eq $seasonEpisode) {
 					$newEpisode =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$2$3/i;
+					# use yyyy.mm.dd to create the release date variable
 					$releaseDate =~ s/([0-9]{4})\.([0-9]{2})\.([0-9]{2})/$1\-$2\-$3T09:00:00Z/i;
 				}
 		
