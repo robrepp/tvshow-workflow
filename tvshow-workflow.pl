@@ -266,7 +266,7 @@ else {
 		
 				# encode file with HandBrakeCLI
 				print "\nEncoding file... (Start time: ". POSIX::strftime('%H:%M:%S', localtime).")";
-				my $HBrun = `$HB_CLI_bin -i "$workingDirectory/Staging/Originals/$videofile" -o "$workingDirectory/Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
+				my $HBrun = `nice -n 10 $HB_CLI_bin -i "$workingDirectory/Staging/Originals/$videofile" -o "$workingDirectory/Staging/Encoding/$newFileName" --preset="$HBPresetName" > /dev/null 2>&1`;
 				print "\nEncoding complete. (End time: ". POSIX::strftime('%H:%M:%S', localtime).")\n";
 		
 				# use AtomicParsley to write the data to the file
